@@ -25,7 +25,9 @@ class PyannoteVAD(VAD):
 
     def detect_activity(self, audio) -> List[Tuple[int, int]]:
         vad = self.pipeline(audio)
-        result = [(track[0].start, track[0].end) for track in vad.itertracks()]
+        result = [
+            (track[0].start, track[0].end, track[1]) for track in vad.itertracks()
+        ]
         if len(result) == 0:
             result = [None]
         return result

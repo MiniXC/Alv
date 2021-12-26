@@ -26,7 +26,6 @@ class VAD(ABC):
 
     def segment(self, recorder: Recorder):
         previous_audio = None
-        print("recording")
         for chunk in recorder.record():
             # TODO: load audio in parallel with detect_activity
             audio, sr = librosa.load(chunk)
@@ -35,18 +34,23 @@ class VAD(ABC):
                     if previous_audio is not None:
                         yield previous_audio, sr
                         previous_audio = None
-                        continue
+                    continue
                 start = int(max(0, (segment[0] - self.start_padding)) * sr)
                 end = int(
                     min((recorder.chunk_duration, segment[1] + self.end_padding)) * sr
                 )
                 current_audio = audio[start:end]
 
-                if segment[0] <= self.boundary_treshhold and previous_audio is not None:
-                    start = 0
-                    current_audio = audio[start:end]
-                    current_audio = np.concatenate([previous_audio, current_audio])
+                if previous_audio is not None:
+                    if segment[0] <= self.boundary_treshhold:
+                        start = 0
+                        current_audio = audio[start:end]
+                        current_audio = np.concatenate([previous_audio, current_audio])
+                    else:
+                        yield previous_audio, sr
+                        previous_audio = None
                 if segment[1] <= recorder.chunk_duration - self.boundary_treshhold:
                     yield current_audio, sr
+                    previous_audio = None
                 else:
                     previous_audio = current_audio

@@ -3,11 +3,12 @@ from pathlib import Path
 import os
 import queue
 from threading import Thread
+import uuid
 from scipy.io import wavfile
 
 
 class Recorder(ABC):
-    def __init__(self, temp_dir="/tmp/Alv", sr=None, chunk_duration=2):
+    def __init__(self, temp_dir="/tmp/alv", sr=None, chunk_duration=2):
         Path(temp_dir).mkdir(parents=True, exist_ok=True)
         self.temp_dir = temp_dir
         self.sr = sr
@@ -20,7 +21,9 @@ class Recorder(ABC):
         self.thread.start()
         while not self.stopped:
             recording = self.q.get()
-            rec_path = os.path.join(self.temp_dir, "temp_recording.wav")
+            rec_path = os.path.join(
+                os.path.join(self.temp_dir, "raw"), f"{uuid.uuid4().hex}.wav"
+            )
             wavfile.write(rec_path, int(self.sr), recording)
             yield rec_path
 

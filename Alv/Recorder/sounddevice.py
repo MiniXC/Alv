@@ -4,9 +4,12 @@ import warnings
 
 
 class SounddeviceRecorder(Recorder):
-    def __init__(self, temp_dir="/tmp/Alv", sr=None, chunk_duration=2):
+    def __init__(
+        self, temp_dir="/tmp/alv", sr=None, chunk_duration=2, device=sd.default.device
+    ):
         if sr is None:
             sr = sd.query_devices(sd.default.device)["default_samplerate"]
+        self.device = device
         super().__init__(temp_dir=temp_dir, sr=sr, chunk_duration=chunk_duration)
 
     def record_chunks(self):
@@ -17,10 +20,13 @@ class SounddeviceRecorder(Recorder):
 
         with sd.InputStream(
             samplerate=self.sr,
-            device=sd.default.device,
+            device=self.device,
             channels=1,
             blocksize=int(self.chunk_duration * self.sr),
             callback=chunk_callback,
         ):
-            while not self.stopped:
-                sd.sleep(100)
+            try:
+                while not self.stopped:
+                    sd.sleep(100)
+            except (KeyboardInterrupt, SystemExit):
+                self.stopped = True
