@@ -1,14 +1,22 @@
 from abc import ABC, abstractmethod
+import os
 from typing import List, Tuple
+import uuid
 import librosa
 import numpy as np
+from scipy.io import wavfile
 from Recorder import Recorder
 
 
 class VAD(ABC):
     def __init__(
-        self, hyper_parameters, boundary_treshhold_in_ms=100, padding_in_ms=(100, 20)
+        self,
+        hyper_parameters,
+        data_path="/tmp/alv",
+        boundary_treshhold_in_ms=100,
+        padding_in_ms=(100, 20),
     ):
+        self.data_path = data_path
         self.boundary_treshhold = boundary_treshhold_in_ms / 1000
         if isinstance(padding_in_ms, int):
             padding_in_ms = (padding_in_ms, padding_in_ms)
@@ -32,7 +40,11 @@ class VAD(ABC):
             for segment in self.detect_activity(chunk):
                 if segment is None:
                     if previous_audio is not None:
-                        yield previous_audio, sr
+                        path = os.path.join(
+                            self.data_path, "segmented", f"{uuid.uuid4().hex}.wav"
+                        )
+                        wavfile.write(path, sr, previous_audio)
+                        yield path
                         previous_audio = None
                     continue
                 start = int(max(0, (segment[0] - self.start_padding)) * sr)
@@ -47,10 +59,18 @@ class VAD(ABC):
                         current_audio = audio[start:end]
                         current_audio = np.concatenate([previous_audio, current_audio])
                     else:
-                        yield previous_audio, sr
+                        path = os.path.join(
+                            self.data_path, "segmented", f"{uuid.uuid4().hex}.wav"
+                        )
+                        wavfile.write(path, sr, previous_audio)
+                        yield path
                         previous_audio = None
                 if segment[1] <= recorder.chunk_duration - self.boundary_treshhold:
-                    yield current_audio, sr
+                    path = os.path.join(
+                        self.data_path, "segmented", f"{uuid.uuid4().hex}.wav"
+                    )
+                    wavfile.write(path, sr, current_audio)
+                    yield path
                     previous_audio = None
                 else:
                     previous_audio = current_audio

@@ -3,6 +3,8 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 from glob import glob
 
+st.set_page_config(page_title="Alvred", page_icon="🕴️")
+
 st_autorefresh(interval=2000)
 
 st.title("🕴️ Alv Dashboard")

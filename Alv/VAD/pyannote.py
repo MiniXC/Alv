@@ -6,7 +6,7 @@ from pyannote.audio.pipelines import VoiceActivityDetection
 
 _DEFAULT_HYPER_PARAMETERS = {
     # onset/offset activation thresholds
-    "onset": 0.5,
+    "onset": 0.4,
     "offset": 0.5,
     # remove speech regions shorter than that many seconds.
     "min_duration_on": 0.15,
