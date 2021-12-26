@@ -5,7 +5,7 @@ import warnings
 
 class SounddeviceRecorder(Recorder):
     def __init__(
-        self, temp_dir="/tmp/alv", sr=None, chunk_duration=2, device=sd.default.device
+        self, temp_dir="/tmp/alv", sr=None, chunk_duration=1, device=sd.default.device
     ):
         if sr is None:
             sr = sd.query_devices(sd.default.device)["default_samplerate"]
@@ -16,7 +16,7 @@ class SounddeviceRecorder(Recorder):
         def chunk_callback(indata, frames, time, status):
             if status:
                 warnings.warn(status)
-            self.q.put(indata.copy())
+            self.q.put(indata)
 
         with sd.InputStream(
             samplerate=self.sr,

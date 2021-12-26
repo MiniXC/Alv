@@ -22,4 +22,4 @@ class HuggingfaceASR(ASR):
         with torch.no_grad():
             logits = self.model(input_values).logits.numpy()[0]
         decoded = self.processor.decode(logits)
-        return decoded.text.lower()
+        return decoded.text.lower().strip()

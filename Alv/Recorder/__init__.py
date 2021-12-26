@@ -8,7 +8,7 @@ from scipy.io import wavfile
 
 
 class Recorder(ABC):
-    def __init__(self, temp_dir="/tmp/alv", sr=None, chunk_duration=2):
+    def __init__(self, temp_dir="/tmp/alv", sr=None, chunk_duration=1):
         Path(temp_dir).mkdir(parents=True, exist_ok=True)
         self.temp_dir = temp_dir
         self.sr = sr

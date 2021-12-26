@@ -5,16 +5,17 @@ from Recorder.sounddevice import SounddeviceRecorder
 import sounddevice as sd
 import click
 import os
-import uuid
 from glob import glob
 
 devices = [d for d in list(sd.query_devices())]
+print(devices)
 
 @click.command()
 @click.option("--list-devices", is_flag=True)
-@click.option("--input_device", "-i", type=click.Choice(range(len(devices))))
-@click.option("--data_path", default="/tmp/alv")
-def start_alv(list_devices, input_device, data_path):
+@click.option("--input-device")
+@click.option("--data-path", default="/tmp/alv")
+@click.option("--hotword", default="alfred")
+def start_alv(list_devices, input_device, data_path, hotword):
     # make paths
     Path(data_path).mkdir(parents=True, exist_ok=True)
     for subpath in ["segmented", "raw", "recognized"]:
@@ -22,6 +23,9 @@ def start_alv(list_devices, input_device, data_path):
     # remove old wavs
     for wav in glob(os.path.join(data_path, "segmented", "*.wav")):
         os.remove(wav)
+    # remove old txts
+    for txt in glob(os.path.join(data_path, "recognized", "*.txt")):
+        os.remove(txt)
 
     if list_devices:
         for i, device in enumerate(devices):
@@ -32,8 +36,20 @@ def start_alv(list_devices, input_device, data_path):
     vad = PyannoteVAD()
     asr = HuggingfaceASR("flozi00/wav2vec2-large-xlsr-53-german-with-lm")
 
+    prev_text = None
     for audio in vad.segment(rec):
-        print(asr.recognize(audio))
+        text = asr.recognize(audio)
+        # TODO: add this to the ASR superclass 
+        if prev_text is not None:
+            text = prev_text + " " + text
+            prev_text = None
+        if text == hotword:
+            prev_text = text
+        if len(text) > 0:
+            transcription_path = audio.replace(".wav", ".txt").replace("segmented", "recognized")
+            with open(transcription_path, "w") as t:
+                t.write(text)
+        
 
 
 if __name__ == "__main__":

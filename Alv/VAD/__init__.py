@@ -13,7 +13,7 @@ class VAD(ABC):
         self,
         hyper_parameters,
         data_path="/tmp/alv",
-        boundary_treshhold_in_ms=100,
+        boundary_treshhold_in_ms=50,
         padding_in_ms=(100, 20),
     ):
         self.data_path = data_path
