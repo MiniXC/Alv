@@ -16,13 +16,16 @@ _DEFAULT_HYPER_PARAMETERS = {
 
 
 class PyannoteVAD(VAD):
-    def __init__(self, hyper_parameters=_DEFAULT_HYPER_PARAMETERS):
+    def __init__(self, hyper_parameters=_DEFAULT_HYPER_PARAMETERS, **kwargs):
         self.pipeline = VoiceActivityDetection(segmentation="pyannote/segmentation")
-        super().__init__(hyper_parameters)
+        super().__init__(hyper_parameters, **kwargs)
 
     def init_hyper_parameters(self, hyper_parameters):
         self.pipeline.instantiate(hyper_parameters)
 
     def detect_activity(self, audio) -> List[Tuple[int, int]]:
         vad = self.pipeline(audio)
-        return [(track[0].start, track[0].end) for track in vad.itertracks()]
+        result = [(track[0].start, track[0].end) for track in vad.itertracks()]
+        if len(result) == 0:
+            result = [None]
+        return result
