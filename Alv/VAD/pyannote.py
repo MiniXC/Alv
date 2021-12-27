@@ -1,6 +1,5 @@
 from typing import List, Tuple
 from VAD import VAD
-import librosa
 
 from pyannote.audio.pipelines import VoiceActivityDetection
 
@@ -18,10 +17,8 @@ _DEFAULT_HYPER_PARAMETERS = {
 class PyannoteVAD(VAD):
     def __init__(self, hyper_parameters=_DEFAULT_HYPER_PARAMETERS, **kwargs):
         self.pipeline = VoiceActivityDetection(segmentation="pyannote/segmentation")
-        super().__init__(hyper_parameters, **kwargs)
-
-    def init_hyper_parameters(self, hyper_parameters):
         self.pipeline.instantiate(hyper_parameters)
+        super().__init__(**kwargs)
 
     def detect_activity(self, audio) -> List[Tuple[int, int]]:
         vad = self.pipeline(audio)

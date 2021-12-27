@@ -4,13 +4,13 @@ import warnings
 
 
 class SounddeviceRecorder(Recorder):
-    def __init__(
-        self, temp_dir="/tmp/alv", sr=None, chunk_duration=1, device=sd.default.device
-    ):
-        if sr is None:
-            sr = sd.query_devices(sd.default.device)["default_samplerate"]
+    def __init__(self, device=sd.default.device, **kwargs):
+        if "sr" not in kwargs:
+            kwargs["sr"] = sd.query_devices(device=sd.default.device, kind="input")[
+                "default_samplerate"
+            ]
         self.device = device
-        super().__init__(temp_dir=temp_dir, sr=sr, chunk_duration=chunk_duration)
+        super().__init__(**kwargs)
 
     def record_chunks(self):
         def chunk_callback(indata, frames, time, status):
