@@ -32,45 +32,57 @@ class VAD(ABC):
     def detect_activity(self, audio) -> List[Tuple[int, int]]:
         return NotImplemented
 
+    def save_audio(self, sr, audio):
+        path = os.path.join(
+            self.data_path, "segmented", f"{uuid.uuid4().hex}.wav"
+        )
+        wavfile.write(path, sr, audio)
+        return path
+
     def segment(self, recorder: Recorder):
         previous_audio = None
         for chunk in recorder.record():
-            # TODO: load audio in parallel with detect_activity
+            # TODO: check how fast this is, and possibly parallelize
             audio, sr = librosa.load(chunk)
             for segment in self.detect_activity(chunk):
+                # yield previous audio if no audio detected this chunk
                 if segment is None:
                     if previous_audio is not None:
-                        path = os.path.join(
-                            self.data_path, "segmented", f"{uuid.uuid4().hex}.wav"
-                        )
-                        wavfile.write(path, sr, previous_audio)
-                        yield path
+                        yield self.save_audio(sr, previous_audio)
                         previous_audio = None
                     continue
+
+                # default start/end index
                 start = int(max(0, (segment[0] - self.start_padding)) * sr)
                 end = int(
                     min((recorder.chunk_duration, segment[1] + self.end_padding)) * sr
                 )
+
                 current_audio = audio[start:end]
 
-                if previous_audio is not None:
-                    if segment[0] <= self.boundary_treshhold:
-                        start = 0
-                        current_audio = audio[start:end]
-                        current_audio = np.concatenate([previous_audio, current_audio])
-                    else:
-                        path = os.path.join(
-                            self.data_path, "segmented", f"{uuid.uuid4().hex}.wav"
-                        )
-                        wavfile.write(path, sr, previous_audio)
-                        yield path
-                        previous_audio = None
-                if segment[1] <= recorder.chunk_duration - self.boundary_treshhold:
-                    path = os.path.join(
-                        self.data_path, "segmented", f"{uuid.uuid4().hex}.wav"
-                    )
-                    wavfile.write(path, sr, current_audio)
-                    yield path
+                # the audio continues from the previous chunk
+                cont_prev = (segment[0] <= self.boundary_treshhold) and previous_audio is not None
+                # the audio (possibly) continues in the next chunk
+                cont_next = (segment[1] > recorder.chunk_duration - self.boundary_treshhold)
+
+                if cont_prev:
+                    start = 0
+                    current_audio = audio[start:end]
+                    current_audio = np.concatenate([previous_audio, current_audio])
                     previous_audio = None
+                    # we can't yield yet because the audio might continue
                 else:
+                    # we yield the previous audio because it has no continuation
+                    yield self.save_audio(sr, previous_audio)
+                    previous_audio = None
+                if cont_next:
+                    abs_end = len(audio)
+                    if cont_prev:
+                        # we concatenate the end that was cut off 
+                        current_audio = np.concatenate([current_audio, audio[end:abs_end]])
+                    else:
+                        current_audio = audio[start:abs_end]
                     previous_audio = current_audio
+                else:
+                    # we yield as there is no possible continuation in the next chunk
+                    yield self.save_audio(sr, current_audio)
