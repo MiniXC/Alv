@@ -22,7 +22,7 @@ class Recorder(ABC):
         self.thread.start()
         while not self.stopped:
             recording = self.q.get()
-            rec_path = os.path.join(self.data_path, f"{uuid.uuid4().hex}.wav")
+            rec_path = self.generate_path()
             wavfile.write(rec_path, int(self.sr), recording)
             yield rec_path
 

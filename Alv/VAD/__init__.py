@@ -27,7 +27,7 @@ class VAD(ABC):
         return NotImplemented
 
     def save_audio(self, sr, audio):
-        path = os.path.join(self.data_path, f"{uuid.uuid4().hex}.wav")
+        path = self.generate_path()
         wavfile.write(path, sr, audio)
         return path
 
