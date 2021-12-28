@@ -9,7 +9,7 @@ from scipy.io import wavfile
 from utils import class_with_path
 
 
-@class_with_path
+@class_with_path(delete_file_extension="wav")
 class Recorder(ABC):
     def __init__(self, sr=None, chunk_duration=1):
         self.sr = sr
@@ -22,7 +22,7 @@ class Recorder(ABC):
         self.thread.start()
         while not self.stopped:
             recording = self.q.get()
-            rec_path = os.path.join(self.data_path, "raw", f"{uuid.uuid4().hex}.wav")
+            rec_path = os.path.join(self.data_path, f"{uuid.uuid4().hex}.wav")
             wavfile.write(rec_path, int(self.sr), recording)
             yield rec_path
 

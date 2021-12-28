@@ -6,7 +6,7 @@ from Recorder import Recorder
 from VAD import VAD
 
 
-@class_with_path
+@class_with_path(delete_file_extension="txt")
 class ASR(ABC):
     def __init__(self, callword=None):
         self.callword = callword
@@ -26,6 +26,7 @@ class ASR(ABC):
                 path = os.path.join(self.data_path, audio.replace(".wav", ".txt"))
                 with open(path, "w") as t:
                     t.write(text)
+                    yield text
 
     @abstractmethod
     def recognize_chunk(self, audio_file):

@@ -11,9 +11,9 @@ st.title("🕴️ Alv Dashboard")
 
 data_path = st.text_input("Path", "/tmp/alv")
 
-files = glob(os.path.join(data_path, "recognized", "*.txt"))
+files = glob(os.path.join(data_path, "asr", "*.txt"))
 files.sort(key=os.path.getmtime)
 
 for f in files:
     st.write(open(f).read())
-    st.audio(f.replace("recognized", "segmented").replace(".txt", ".wav"))
+    st.audio(f.replace("asr", "vad").replace(".txt", ".wav"))

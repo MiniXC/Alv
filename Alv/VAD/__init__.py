@@ -9,11 +9,11 @@ from utils import class_with_path
 from Recorder import Recorder
 
 
-@class_with_path
+@class_with_path(delete_file_extension="wav")
 class VAD(ABC):
     def __init__(
         self,
-        boundary_treshhold_in_ms=50,
+        boundary_treshhold_in_ms=200,
         padding_in_ms=(100, 20),
     ):
         self.boundary_treshhold = boundary_treshhold_in_ms / 1000
@@ -27,7 +27,7 @@ class VAD(ABC):
         return NotImplemented
 
     def save_audio(self, sr, audio):
-        path = os.path.join(self.data_path, "segmented", f"{uuid.uuid4().hex}.wav")
+        path = os.path.join(self.data_path, f"{uuid.uuid4().hex}.wav")
         wavfile.write(path, sr, audio)
         return path
 
@@ -67,7 +67,7 @@ class VAD(ABC):
                     current_audio = np.concatenate([previous_audio, current_audio])
                     previous_audio = None
                     # we can't yield yet because the audio might continue
-                else:
+                elif previous_audio is not None:
                     # we yield the previous audio because it has no continuation
                     yield self.save_audio(sr, previous_audio)
                     previous_audio = None
