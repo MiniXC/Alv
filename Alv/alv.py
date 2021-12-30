@@ -9,6 +9,7 @@ import click
 
 @click.command()
 @click.option("--list-devices", is_flag=True)
+@click.option("--fp16", is_flag=True)
 @click.option("--input-device", default=sd.default.device)
 @click.option("--local-file")
 @click.option("--data-path", default="/tmp/alv")
@@ -18,6 +19,7 @@ import click
 @click.option("--callword", default="alfred")
 def start_alv(
     list_devices,
+    fp16,
     input_device,
     local_file,
     data_path,
@@ -47,7 +49,8 @@ def start_alv(
     asr = HuggingfaceASR(
         "flozi00/wav2vec2-large-xlsr-53-german-with-lm",
         callword=callword,
-        data_path=data_path + "/asr",
+        data_path=os.path.join(data_path, asr_subpath),
+        fp16=fp16,
     )
 
     for text in asr.recognize(vad, rec):

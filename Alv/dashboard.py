@@ -17,8 +17,16 @@ data_path = st.sidebar.text_input("Path", "/tmp/alv")
 view = st.sidebar.selectbox("View", ["ASR", "VAD", "REC"])
 num_files = st.sidebar.slider("Number of Results", 1, 100, 10)
 
+@st.cache
+def load_audio(audio_path):
+    return librosa.load(audio_path)
+
+@st.cache
+def load_text(text_path):
+    return open(text_path).read()
+
 def show_specgram(audio_path, component=st):
-    audio, sr = librosa.load(audio_path)
+    audio, sr = load_audio(audio_path)
     fig = plt.figure(figsize=(10, 2))
     #plt.specgram(audio, Fs=sr)
     plt.plot(audio)
@@ -38,7 +46,7 @@ for i,f in enumerate(files):
     time = datetime.fromtimestamp(os.path.getmtime(f))
     col1, col2, col3 = st.columns(3)
     col1.write(time)
-    col2.write(open(f).read())
+    col2.write(load_text(f))
     audio_path = f.replace("asr", "vad").replace(".txt", ".wav")
     show_specgram(audio_path, col3)
     col3.audio(audio_path)
