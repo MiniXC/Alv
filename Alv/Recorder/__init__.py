@@ -4,6 +4,7 @@ import os
 import queue
 from threading import Thread
 import uuid
+import librosa
 from scipy.io import wavfile
 
 from utils import class_with_path
@@ -22,8 +23,9 @@ class Recorder(ABC):
         self.thread.start()
         while not self.stopped:
             recording = self.q.get()
+            sr = self.sr
             rec_path = self.generate_path()
-            wavfile.write(rec_path, int(self.sr), recording)
+            wavfile.write(rec_path, int(sr), recording)
             yield rec_path
 
     @abstractmethod

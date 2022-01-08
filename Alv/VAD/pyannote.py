@@ -10,7 +10,7 @@ _DEFAULT_HYPER_PARAMETERS = {
     # remove speech regions shorter than that many seconds.
     "min_duration_on": 0.15,
     # fill non-speech regions shorter than that many seconds.
-    "min_duration_off": 0.05,
+    "min_duration_off": 0.15,
 }
 
 
@@ -22,9 +22,7 @@ class PyannoteVAD(VAD):
 
     def detect_activity(self, audio) -> List[Tuple[int, int]]:
         vad = self.pipeline(audio)
-        result = [
-            (track[0].start, track[0].end, track[1]) for track in vad.itertracks()
-        ]
+        result = [(track[0].start, track[0].end) for track in vad.itertracks()]
         if len(result) == 0:
             result = [None]
         return result

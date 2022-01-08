@@ -32,10 +32,11 @@ class VAD(ABC):
         return path
 
     def segment(self, recorder: Recorder):
+        self.sr = recorder.sr
         previous_audio = None
         for chunk in recorder.record():
             # TODO: check how fast this is, and possibly parallelize
-            audio, sr = librosa.load(chunk)
+            audio, sr = librosa.load(chunk, sr=16_000)
             for segment in self.detect_activity(chunk):
                 # yield previous audio if no audio detected this chunk
                 if segment is None:

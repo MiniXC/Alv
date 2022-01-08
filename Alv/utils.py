@@ -3,6 +3,7 @@ from pathlib import Path
 from glob import glob
 import uuid
 
+
 def class_with_path(prefix="alv_", delete_file_extension=""):
     def inner(Cls):
         old_init = Cls.__init__
@@ -13,7 +14,9 @@ def class_with_path(prefix="alv_", delete_file_extension=""):
             self.data_path = kwargs["data_path"]
             Path(self.data_path).mkdir(parents=True, exist_ok=True)
             if delete_file_extension is not None:
-                files = glob(os.path.join(self.data_path, f"{prefix}*.{delete_file_extension}"))
+                files = glob(
+                    os.path.join(self.data_path, f"{prefix}*.{delete_file_extension}")
+                )
                 for f in files:
                     os.remove(f)
             del kwargs["data_path"]

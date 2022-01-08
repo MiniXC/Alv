@@ -26,7 +26,7 @@ class ASR(ABC):
                 path = os.path.join(self.data_path, audio.replace(".wav", ".txt"))
                 with open(path, "w") as t:
                     t.write(text)
-                    yield text
+                yield path
 
     @abstractmethod
     def recognize_chunk(self, audio_file):

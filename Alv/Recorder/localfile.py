@@ -3,11 +3,11 @@ import librosa
 
 
 class LocalfileRecorder(Recorder):
-    def __init__(self, audio_file, **kwargs):
+    def __init__(self, audio_file, res_type="kaiser_fast", **kwargs):
         sr = None
         if "sr" in kwargs:
             sr = kwargs["sr"]
-        self.audio, kwargs["sr"] = librosa.load(audio_file, sr=sr)
+        self.audio, kwargs["sr"] = librosa.load(audio_file, sr=sr, res_type=res_type)
         super().__init__(**kwargs)
 
     def record_chunks(self):
