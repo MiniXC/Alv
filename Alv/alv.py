@@ -3,7 +3,7 @@ from ASR.HuggingfaceASR import HuggingfaceASR
 from VAD.webrtc import WebrtcVAD
 from IntentDetector.sentence_transformer import SentenceTransformerIntents
 from Recorder.localfile import LocalfileRecorder
-from Recorder.sounddevice import SounddeviceRecorder
+from Recorder.pyaudio import PyaudioRecorder
 from VAD.pyannote import PyannoteVAD
 import sounddevice as sd
 import click
@@ -44,11 +44,14 @@ def start_alv(
     if local_file is not None:
         rec = LocalfileRecorder(local_file, data_path=rec_path, chunk_duration=2, sr=sr)
     else:
-        rec = SounddeviceRecorder(
+        rec = PyaudioRecorder(
             data_path=rec_path, chunk_duration=2, sr=sr, to_pcm=True, device=int(input_device)
         )
 
     vad = PyannoteVAD(data_path=os.path.join(data_path, vad_subpath))
+
+    for segment in vad.segment(rec):
+        pass
 
     asr = HuggingfaceASR(
         "flozi00/wav2vec2-large-xlsr-53-german-with-lm",
