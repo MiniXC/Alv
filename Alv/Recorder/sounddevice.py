@@ -1,32 +1,39 @@
 from Recorder import Recorder
 import sounddevice as sd
 import warnings
-
+import numpy as np
+import pyaudio
+import time
 
 class SounddeviceRecorder(Recorder):
-    def __init__(self, device=sd.default.device, **kwargs):
-        if "sr" not in kwargs:
-            kwargs["sr"] = sd.query_devices(device=sd.default.device, kind="input")[
-                "default_samplerate"
-            ]
+    def __init__(self, device=0, stream_sr=44100, **kwargs):
+        self.last_time = None
+        self.stream_sr = stream_sr
         self.device = device
+        self.audio = pyaudio.PyAudio()
+        self.input_buffer = []
         super().__init__(**kwargs)
 
     def record_chunks(self):
-        def chunk_callback(indata, frames, time, status):
-            if status:
-                warnings.warn(status)
-            self.q.put(indata)
 
-        with sd.InputStream(
-            samplerate=self.sr,
-            device=self.device,
-            channels=1,
-            blocksize=int(self.chunk_duration * self.sr),
-            callback=chunk_callback,
-        ):
-            try:
-                while not self.stopped:
-                    sd.sleep(100)
-            except (KeyboardInterrupt, SystemExit):
-                self.stopped = True
+        def callback(input_data, frame_count, time_info, flags):
+            input_data = np.frombuffer(input_data, dtype=np.float32)
+            self.input_buffer += list(input_data)
+            if len(self.input_buffer) / self.stream_sr >= self.chunk_duration:
+                self.q.put(self.input_buffer)
+                self.input_buffer = []
+            return input_data, pyaudio.paContinue
+
+        stream = self.audio.open(format=pyaudio.paFloat32,
+                            channels=1,
+                            rate=self.stream_sr,
+                            input=True,
+                            stream_callback=callback,
+                            frames_per_buffer=4096,
+                            input_device_index=self.device
+                            )
+
+        stream.start_stream()
+
+        while stream.is_active():
+            time.sleep(0.1)

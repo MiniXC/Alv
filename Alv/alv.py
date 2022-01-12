@@ -1,5 +1,6 @@
 import os
 from ASR.HuggingfaceASR import HuggingfaceASR
+from VAD.webrtc import WebrtcVAD
 from IntentDetector.sentence_transformer import SentenceTransformerIntents
 from Recorder.localfile import LocalfileRecorder
 from Recorder.sounddevice import SounddeviceRecorder
@@ -44,7 +45,7 @@ def start_alv(
         rec = LocalfileRecorder(local_file, data_path=rec_path, chunk_duration=2, sr=sr)
     else:
         rec = SounddeviceRecorder(
-            device=input_device, data_path=rec_path, chunk_duration=2
+            data_path=rec_path, chunk_duration=2, sr=sr, to_pcm=True, device=int(input_device)
         )
 
     vad = PyannoteVAD(data_path=os.path.join(data_path, vad_subpath))

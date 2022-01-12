@@ -14,7 +14,7 @@ st_autorefresh(interval=5000)
 st.title("🕴️ Alv Dashboard")
 
 data_path = st.sidebar.text_input("Path", "/tmp/alv")
-view = st.sidebar.selectbox("View", ["INT", "ASR", "VAD"])
+view = st.sidebar.selectbox("View", ["INT", "ASR", "VAD", "REC"])
 num_files = st.sidebar.slider("Number of Results", 1, 100, 10)
 sort = st.sidebar.radio("Sort", ["newest first", "oldest first"])
 reverse = sort == "newest first"
@@ -57,6 +57,21 @@ if view == "ASR":
         audio_path = f.replace("asr", "vad").replace(".txt", ".wav")
         show_specgram(audio_path, col3)
         col3.audio(audio_path)
+
+if view == "REC":
+    files = glob(os.path.join(data_path, "rec", "*.wav"))
+    files.sort(key=os.path.getmtime, reverse=reverse)
+    col1, col2 = st.columns(2)
+    col1.subheader("Time")
+    col2.subheader("Audio")
+    for i, f in enumerate(files):
+        if i == num_files:
+            break
+        time = datetime.fromtimestamp(os.path.getmtime(f))
+        col1, col2 = st.columns(2)
+        col1.write(time)
+        show_specgram(f, col2)
+        col2.audio(f)
 
 if view == "VAD":
     files = glob(os.path.join(data_path, "vad", "*.wav"))

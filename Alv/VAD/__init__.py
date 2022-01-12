@@ -14,7 +14,7 @@ class VAD(ABC):
     def __init__(
         self,
         boundary_treshhold_in_ms=200,
-        padding_in_ms=(100, 20),
+        padding_in_ms=(200, 200),
     ):
         self.boundary_treshhold = boundary_treshhold_in_ms / 1000
         if isinstance(padding_in_ms, int):
@@ -23,7 +23,7 @@ class VAD(ABC):
         self.end_padding = padding_in_ms[1] / 1000
 
     @abstractmethod
-    def detect_activity(self, audio) -> List[Tuple[int, int]]:
+    def detect_activity(self, path, audio) -> List[Tuple[int, int]]:
         return NotImplemented
 
     def save_audio(self, sr, audio):
@@ -32,12 +32,12 @@ class VAD(ABC):
         return path
 
     def segment(self, recorder: Recorder):
-        self.sr = recorder.sr
+        self.sr = 16_000 # clean this up
         previous_audio = None
         for chunk in recorder.record():
             # TODO: check how fast this is, and possibly parallelize
             audio, sr = librosa.load(chunk, sr=16_000)
-            for segment in self.detect_activity(chunk):
+            for segment in self.detect_activity(chunk, audio):
                 # yield previous audio if no audio detected this chunk
                 if segment is None:
                     if previous_audio is not None:
