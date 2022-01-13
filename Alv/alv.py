@@ -11,6 +11,7 @@ import click
 
 @click.command()
 @click.option("--list-devices", is_flag=True)
+@click.option("--segmentation-only", is_flag=True)
 @click.option("--input-device", default=sd.default.device)
 @click.option("--local-file")
 @click.option("--data-path", default="/tmp/alv")
@@ -22,6 +23,7 @@ import click
 @click.option("--sampling_rate", default=16_000)
 def start_alv(
     list_devices,
+    segmentation_only,
     input_device,
     local_file,
     data_path,
@@ -50,8 +52,11 @@ def start_alv(
 
     vad = PyannoteVAD(data_path=os.path.join(data_path, vad_subpath))
 
-    for segment in vad.segment(rec):
-        pass
+    if segmentation_only:
+        print("running segmentation only, no ASR or intent recognition")
+        for segment in vad.segment(rec):
+            print("segment found")
+            pass
 
     asr = HuggingfaceASR(
         "flozi00/wav2vec2-large-xlsr-53-german-with-lm",
