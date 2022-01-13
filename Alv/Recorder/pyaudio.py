@@ -27,7 +27,7 @@ class PyaudioRecorder(Recorder):
                             rate=self.stream_sr,
                             input=True,
                             stream_callback=callback,
-                            frames_per_buffer=4096,
+                            frames_per_buffer=4096//2,
                             input_device_index=self.device
                             )
 
